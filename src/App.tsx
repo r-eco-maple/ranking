@@ -1,0 +1,133 @@
+import { useState, useEffect } from 'react';
+import { Player } from './types';
+import { fetchRankingData } from './api';
+import RankingTable from './components/RankingTable';
+import FilterPanel from './components/FilterPanel';
+import RankingChart from './components/RankingChart';
+import './App.css';
+
+function App() {
+  const [allPlayers, setAllPlayers] = useState<Player[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [filteredPlayers, setFilteredPlayers] = useState<Player[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  const [dataStats, setDataStats] = useState({
+    uniquePlayerCount: 0,
+    dataStartDate: '',
+    dataEndDate: '',
+    minLevel: 0,
+    maxLevel: 0
+  });
+
+  const [filters, setFilters] = useState({
+    name: ''
+  });
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetchRankingData();
+        if (response.success && response.data && response.data.length > 0) {
+          setAllPlayers(response.data);
+          const latestData = response.data.slice(-100);
+          setPlayers(latestData);
+          setFilteredPlayers(latestData);
+          
+          // データ統計を計算
+          const uniqueNames = new Set(response.data.map(p => p.name));
+          const timestamps = response.data.map(p => new Date(p.timestamp)).sort((a, b) => a.getTime() - b.getTime());
+          const levels = response.data.map(p => p.level);
+          
+          setDataStats({
+            uniquePlayerCount: uniqueNames.size,
+            dataStartDate: timestamps[0]?.toLocaleDateString('ja-JP') || '',
+            dataEndDate: timestamps[timestamps.length - 1]?.toLocaleDateString('ja-JP') || '',
+            minLevel: levels.length > 0 ? Math.min(...levels) : 0,
+            maxLevel: levels.length > 0 ? Math.max(...levels) : 0
+          });
+        } else {
+          setError('データの取得に失敗しました。しばらく後にお試しください。');
+        }
+      } catch (err) {
+        console.error('Data fetch error:', err);
+        setError('データサーバーに接続できません。しばらく後にお試しください。');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    const hasActiveFilters = filters.name;
+    
+    let dataToFilter = hasActiveFilters ? allPlayers : players;
+    let filtered = dataToFilter;
+
+    if (filters.name) {
+      filtered = filtered.filter(player => 
+        player.name.toLowerCase().includes(filters.name.toLowerCase())
+      );
+    }
+
+    setFilteredPlayers(filtered);
+  }, [players, allPlayers, filters]);
+
+  const handleFilterChange = (newFilters: typeof filters) => {
+    setFilters(newFilters);
+  };
+
+  const handleNameClick = (name: string) => {
+    setFilters({ name });
+  };
+
+  if (loading) {
+    return (
+      <div className="app">
+        <div className="loading">Loading...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="app">
+        <div className="error">{error}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="app">
+      <header className="app-header">
+        <h1>MapleStory Ranking</h1>
+        <div className="data-stats">
+          <span>プレイヤー数: {dataStats.uniquePlayerCount}人</span>
+          <span>期間: {dataStats.dataStartDate} ~ {dataStats.dataEndDate}</span>
+          <span>レベル範囲: Lv.{dataStats.minLevel} - {dataStats.maxLevel}</span>
+        </div>
+      </header>
+      
+      <FilterPanel 
+        filters={filters} 
+        onFilterChange={handleFilterChange}
+        players={allPlayers}
+      />
+      
+      {filters.name && (
+        <RankingChart 
+          selectedPlayerName={filters.name}
+          allPlayers={allPlayers}
+        />
+      )}
+      
+      <RankingTable players={filteredPlayers} onNameClick={handleNameClick} />
+    </div>
+  );
+}
+
+export default App;

@@ -1,0 +1,155 @@
+.ranking-table-container {
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.ranking-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.ranking-table thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.ranking-table th {
+  padding: 15px 12px;
+  text-align: left;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.ranking-table tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+  transition: background-color 0.2s;
+}
+
+.ranking-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.ranking-table tbody tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+.ranking-table tbody tr:nth-child(even):hover {
+  background-color: #f1f5f9;
+}
+
+.ranking-table td {
+  padding: 12px;
+  vertical-align: middle;
+}
+
+.rank-cell {
+  font-weight: 700;
+  text-align: center;
+  width: 60px;
+}
+
+.rank.top-rank {
+  color: #f59e0b;
+  font-size: 16px;
+}
+
+.name-cell {
+  font-weight: 600;
+  color: #1f2937;
+  min-width: 120px;
+}
+
+.name-button {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  color: #667eea;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: all 0.2s ease;
+}
+
+.name-button:hover {
+  color: #4f46e5;
+  text-decoration-color: #4f46e5;
+}
+
+.name-button:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.world-cell {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.level-cell {
+  font-weight: 600;
+  color: #059669;
+  text-align: center;
+  width: 80px;
+}
+
+.job-cell {
+  color: #7c3aed;
+  font-weight: 500;
+  min-width: 150px;
+}
+
+.timestamp-cell {
+  color: #6b7280;
+  font-size: 12px;
+  min-width: 140px;
+}
+
+.no-results {
+  text-align: center;
+  padding: 50px 20px;
+  color: #6b7280;
+  font-size: 16px;
+  background-color: #f9fafb;
+}
+
+@media (max-width: 768px) {
+  .ranking-table-container {
+    overflow-x: auto;
+  }
+  
+  .ranking-table {
+    min-width: 700px;
+    font-size: 13px;
+  }
+  
+  .ranking-table th,
+  .ranking-table td {
+    padding: 10px 8px;
+  }
+  
+  .timestamp-cell {
+    display: none;
+  }
+  
+  .ranking-table th:last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .ranking-table {
+    min-width: 500px;
+    font-size: 12px;
+  }
+  
+  .job-cell {
+    font-size: 11px;
+  }
+}
