@@ -140,8 +140,8 @@ jobs:
 
       - name: Build React application
         run: |
-          NODE_ENV=production npm run build
-          echo "✅ React app built successfully"
+          npm run build:prod
+          echo "✅ React app built successfully in production mode"
 
       - name: Prepare deployment directory
         run: |

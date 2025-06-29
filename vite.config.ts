@@ -6,10 +6,15 @@ export default defineConfig({
   base: process.env.NODE_ENV === 'production' 
     ? '/ranking/' // GitHub Pages用のベースパス
     : '/',
+  define: {
+    // React DevToolsを本番環境で完全に無効化
+    __REACT_DEVTOOLS_GLOBAL_HOOK__: 'undefined'
+  },
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false,
+    minify: 'terser',
     rollupOptions: {
       output: {
         manualChunks: {
