@@ -14,7 +14,7 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false,
-    minify: 'terser',
+    minify: 'esbuild', // esbuildを使用（デフォルト、高速）
     rollupOptions: {
       output: {
         manualChunks: {
