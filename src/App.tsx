@@ -70,7 +70,7 @@ function App() {
 
     if (filters.name) {
       filtered = filtered.filter(player => 
-        player.name.toLowerCase().includes(filters.name.toLowerCase())
+        player.name.toLowerCase() === filters.name.toLowerCase()
       );
     }
 

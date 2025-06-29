@@ -7,8 +7,10 @@ export default defineConfig({
     ? '/ranking/' // GitHub Pages用のベースパス
     : '/',
   define: {
-    // React DevToolsを本番環境で完全に無効化
-    __REACT_DEVTOOLS_GLOBAL_HOOK__: 'undefined'
+    // React DevToolsを本番環境でのみ無効化
+    ...(process.env.NODE_ENV === 'production' && {
+      __REACT_DEVTOOLS_GLOBAL_HOOK__: 'undefined'
+    })
   },
   build: {
     outDir: 'dist',
