@@ -29,6 +29,11 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    host: true
-  }
+    host: true,
+    fs: {
+      // ranking-dataディレクトリへのアクセスを許可
+      allow: ['..']
+    }
+  },
+  publicDir: 'ranking-data' // ranking-dataを静的ファイルディレクトリとして設定
 })

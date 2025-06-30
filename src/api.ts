@@ -24,11 +24,37 @@ const getApiKey = () => {
   return import.meta.env.VITE_GAS_API_KEY || null;
 };
 
-export const fetchRankingData = async (): Promise<ApiResponse> => {
+export const fetchRankingData = async (source: string = 'ranking'): Promise<ApiResponse> => {
   try {
+    // ranking_burningの場合はローカルファイルを優先（開発環境のみ）
+    if (source === 'ranking_burning' && import.meta.env.DEV) {
+      try {
+        // Viteの静的ファイル配信を使用（publicDirからの相対パス）
+        const localResponse = await fetch('/data/ranking_burning.json');
+        if (localResponse.ok) {
+          const data = await localResponse.json();
+          console.log("Using local ranking_burning data");
+          return data;
+        }
+      } catch (localError) {
+        console.log("Local ranking_burning.json not found, trying alternative path...");
+        // 代替パスを試行
+        try {
+          const altResponse = await fetch('/ranking-data/data/ranking_burning.json');
+          if (altResponse.ok) {
+            const data = await altResponse.json();
+            console.log("Using local ranking_burning data (alternative path)");
+            return data;
+          }
+        } catch (altError) {
+          console.log("Alternative path also failed, falling back to GitHub Pages");
+        }
+      }
+    }
+    
     // 統合デプロイ: 同一ドメインまたはGitHub PagesのAPIエンドポイント
     const baseUrl = getApiBaseUrl();
-    const response = await fetch(`${baseUrl}/ranking.json`);
+    const response = await fetch(`${baseUrl}/${source}.json`);
 
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
@@ -63,22 +89,73 @@ export const fetchRankingData = async (): Promise<ApiResponse> => {
       }
     }
 
+    // ranking_burningで全て失敗した場合はダミーデータを返す
+    if (source === 'ranking_burning') {
+      console.warn("All ranking_burning data sources failed, returning dummy data");
+      return {
+        success: true,
+        data: [
+          {"id":1,"rank":1,"name":"バーニングプレイヤー1","world":"バーニング","level":300,"job":"バーニングジョブ","timestamp":"2025-06-30T12:00:00.000Z"},
+          {"id":2,"rank":2,"name":"バーニングプレイヤー2","world":"バーニング","level":299,"job":"バーニングジョブ2","timestamp":"2025-06-30T12:00:01.000Z"},
+          {"id":3,"rank":3,"name":"バーニングプレイヤー3","world":"バーニング","level":298,"job":"バーニングジョブ3","timestamp":"2025-06-30T12:00:02.000Z"}
+        ]
+      };
+    }
+
     // フォールバック失敗時
     throw new Error("Unable to fetch ranking data. Please try again later.");
   }
 };
 
 // メタデータ取得用の新しい関数
-export const fetchMetaData = async () => {
+export const fetchMetaData = async (source: string = 'ranking') => {
   try {
+    // ranking_burningの場合はローカルファイルを優先（開発環境のみ）
+    if (source === 'ranking_burning' && import.meta.env.DEV) {
+      try {
+        // Viteの静的ファイル配信を使用（publicDirからの相対パス）
+        const localResponse = await fetch('/data/meta-ranking_burning.json');
+        if (localResponse.ok) {
+          console.log("Using local meta-ranking_burning data");
+          return await localResponse.json();
+        }
+      } catch (localError) {
+        console.log("Local meta-ranking_burning.json not found, trying alternative path...");
+        // 代替パスを試行
+        try {
+          const altResponse = await fetch('/ranking-data/data/meta-ranking_burning.json');
+          if (altResponse.ok) {
+            console.log("Using local meta-ranking_burning data (alternative path)");
+            return await altResponse.json();
+          }
+        } catch (altError) {
+          console.log("Alternative path also failed, falling back to GitHub Pages");
+        }
+      }
+    }
+    
     const baseUrl = getApiBaseUrl();
-    const response = await fetch(`${baseUrl}/meta.json`);
+    const metaFile = source === 'ranking' ? 'meta.json' : `meta-${source}.json`;
+    const response = await fetch(`${baseUrl}/${metaFile}`);
     if (!response.ok) {
       throw new Error(`Meta data fetch error: ${response.status}`);
     }
     return await response.json();
   } catch (error) {
     console.error("Error fetching meta data:", error);
+    
+    // ranking_burningの場合はテスト用メタデータを返す
+    if (source === 'ranking_burning') {
+      return {
+        lastUpdated: new Date().toISOString(),
+        source: "Burning Ranking System (fallback)",
+        updateFrequency: "Test data",
+        dataCount: 3,
+        success: true,
+        buildNumber: "burning-fallback"
+      };
+    }
+    
     return {
       lastUpdated: new Date().toISOString(),
       source: "fallback",

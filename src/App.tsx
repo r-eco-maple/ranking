@@ -4,6 +4,7 @@ import { fetchRankingData } from './api';
 import RankingTable from './components/RankingTable';
 import FilterPanel from './components/FilterPanel';
 import RankingChart from './components/RankingChart';
+import SourceSelector from './components/SourceSelector';
 import './App.css';
 
 function App() {
@@ -25,11 +26,18 @@ function App() {
     name: ''
   });
 
+  const [currentSource, setCurrentSource] = useState('ranking');
+  
+  const availableSources = [
+    { value: 'ranking', label: 'メインランキング' },
+    { value: 'ranking_burning', label: 'バーニングランキング' }
+  ];
+
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const response = await fetchRankingData();
+        const response = await fetchRankingData(currentSource);
         if (response.success && response.data && response.data.length > 0) {
           setAllPlayers(response.data);
           const latestData = response.data.slice(-100);
@@ -60,7 +68,7 @@ function App() {
     };
 
     loadData();
-  }, []);
+  }, [currentSource]);
 
   useEffect(() => {
     const hasActiveFilters = filters.name;
@@ -83,6 +91,12 @@ function App() {
 
   const handleNameClick = (name: string) => {
     setFilters({ name });
+  };
+
+  const handleSourceChange = (source: string) => {
+    setCurrentSource(source);
+    // ソース変更時にフィルターをリセット
+    setFilters({ name: '' });
   };
 
   if (loading) {
@@ -111,6 +125,12 @@ function App() {
           <span>レベル範囲: Lv.{dataStats.minLevel} - {dataStats.maxLevel}</span>
         </div>
       </header>
+      
+      <SourceSelector
+        currentSource={currentSource}
+        onSourceChange={handleSourceChange}
+        availableSources={availableSources}
+      />
       
       <FilterPanel 
         filters={filters} 

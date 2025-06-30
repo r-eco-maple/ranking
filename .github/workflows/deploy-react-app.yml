@@ -41,15 +41,17 @@ jobs:
           echo "DEBUG: API Key length: ${#GAS_API_KEY}"
           echo "DEBUG: API Key content: $GAS_API_KEY"
 
+          # メインランキングデータ取得
+          echo "📊 Fetching main ranking data..."
           for i in {1..3}; do
-            echo "Attempt $i/3..."
+            echo "Main ranking attempt $i/3..."
             
             # User-Agentヘッダーを追加してブラウザのようにアクセス
             if curl -f -s -L -o data/ranking.json \
               -H "User-Agent: Mozilla/5.0 (compatible; GitHub-Actions)" \
               "https://script.google.com/macros/s/AKfycbwOxOppce1dLNhYI3F3IfznonZZI5hIRYFg5Rmu-CLa73KUGJk3ek4o9hAFnxm7F6zn7A/exec?apiKey=$GAS_API_KEY"; then
               
-              echo "✅ Data fetched, checking content..."
+              echo "✅ Main data fetched, checking content..."
               
               # レスポンス内容を確認（デバッグ用）
               echo "Response size: $(wc -c < data/ranking.json) bytes"
@@ -64,7 +66,7 @@ jobs:
                 # データ構造チェック
                 if jq -e '.success and .data and (.data | type) == "array"' data/ranking.json > /dev/null; then
                   echo "✅ Valid data structure"
-                  echo "Data count: $(jq '.data | length' data/ranking.json) records"
+                  echo "Main data count: $(jq '.data | length' data/ranking.json) records"
                   break
                 else
                   echo "❌ Invalid data structure"
@@ -90,7 +92,7 @@ jobs:
                 fi
               fi
             else
-              echo "❌ Failed to fetch data (HTTP error)"
+              echo "❌ Failed to fetch main data (HTTP error)"
             fi
             
             if [ $i -lt 3 ]; then
@@ -99,9 +101,9 @@ jobs:
             fi
           done
 
-          # 最終チェック
+          # メインデータの最終チェック
           if ! jq empty data/ranking.json 2>/dev/null; then
-            echo "❌ All attempts failed - using fallback data"
+            echo "❌ All main data attempts failed - using fallback data"
             cat > data/ranking.json << 'EOF'
           {
             "success": false,
@@ -112,15 +114,88 @@ jobs:
           EOF
           fi
 
+          # バーニングランキングデータ取得
+          echo "🔥 Fetching burning ranking data..."
+          for i in {1..3}; do
+            echo "Burning ranking attempt $i/3..."
+            
+            # バーニングシート指定でデータ取得
+            if curl -f -s -L -o data/ranking_burning.json \
+              -H "User-Agent: Mozilla/5.0 (compatible; GitHub-Actions)" \
+              "https://script.google.com/macros/s/AKfycbwOxOppce1dLNhYI3F3IfznonZZI5hIRYFg5Rmu-CLa73KUGJk3ek4o9hAFnxm7F6zn7A/exec?apiKey=$GAS_API_KEY&sheet=burning"; then
+              
+              echo "✅ Burning data fetched, checking content..."
+              
+              # レスポンス内容を確認（デバッグ用）
+              echo "Burning response size: $(wc -c < data/ranking_burning.json) bytes"
+              echo "First 200 characters:"
+              head -c 200 data/ranking_burning.json
+              echo -e "\n---"
+              
+              # JSON形式チェック
+              if jq empty data/ranking_burning.json 2>/dev/null; then
+                echo "✅ Valid burning JSON received"
+                
+                # データ構造チェック
+                if jq -e '.success and .data and (.data | type) == "array"' data/ranking_burning.json > /dev/null; then
+                  echo "✅ Valid burning data structure"
+                  echo "Burning data count: $(jq '.data | length' data/ranking_burning.json) records"
+                  break
+                else
+                  echo "❌ Invalid burning data structure"
+                  echo "Response content:"
+                  cat data/ranking_burning.json
+                fi
+              else
+                echo "❌ Invalid burning JSON format"
+                echo "Response content:"
+                cat data/ranking_burning.json
+                
+                # HTMLレスポンスからリダイレクトURLを抽出
+                REDIRECT_URL=$(grep -o 'https://script.googleusercontent.com[^"]*' data/ranking_burning.json | head -1)
+                if [ ! -z "$REDIRECT_URL" ]; then
+                  echo "🔄 Found burning redirect URL, trying: $REDIRECT_URL"
+                  if curl -f -s -L -o data/ranking_burning.json "$REDIRECT_URL"; then
+                    echo "✅ Burning redirect successful, checking content..."
+                    if jq empty data/ranking_burning.json 2>/dev/null; then
+                      echo "✅ Valid burning JSON from redirect"
+                      break
+                    fi
+                  fi
+                fi
+              fi
+            else
+              echo "❌ Failed to fetch burning data (HTTP error)"
+            fi
+            
+            if [ $i -lt 3 ]; then
+              echo "Retrying burning data in 30 seconds..."
+              sleep 30
+            fi
+          done
+
+          # バーニングデータの最終チェック
+          if ! jq empty data/ranking_burning.json 2>/dev/null; then
+            echo "❌ All burning data attempts failed - using fallback data"
+            cat > data/ranking_burning.json << 'EOF'
+          {
+            "success": false,
+            "data": [],
+            "error": "Failed to fetch burning data from GAS",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+          fi
+
       - name: Update metadata
         run: |
           cd ranking-data
 
-          # データカウント取得（エラー時は0）
+          # メインランキングメタデータ作成
+          echo "📊 Creating main ranking metadata..."
           DATA_COUNT=$(jq -r '.data | length // 0' data/ranking.json 2>/dev/null || echo "0")
           SUCCESS_STATUS=$(jq -r '.success // false' data/ranking.json 2>/dev/null || echo "false")
 
-          # メタデータ更新
           cat > data/meta.json << EOF
           {
             "lastUpdated": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
@@ -132,7 +207,25 @@ jobs:
             "buildNumber": "${{ github.run_number }}"
           }
           EOF
-          echo "✅ Metadata updated (Records: $DATA_COUNT, Success: $SUCCESS_STATUS)"
+          echo "✅ Main metadata updated (Records: $DATA_COUNT, Success: $SUCCESS_STATUS)"
+
+          # バーニングランキングメタデータ作成
+          echo "🔥 Creating burning ranking metadata..."
+          BURNING_DATA_COUNT=$(jq -r '.data | length // 0' data/ranking_burning.json 2>/dev/null || echo "0")
+          BURNING_SUCCESS_STATUS=$(jq -r '.success // false' data/ranking_burning.json 2>/dev/null || echo "false")
+
+          cat > data/meta-ranking_burning.json << EOF
+          {
+            "lastUpdated": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "timezone": "UTC", 
+            "source": "MapleStory Burning Ranking System",
+            "updateFrequency": "Daily at 09:00 JST",
+            "dataCount": $BURNING_DATA_COUNT,
+            "success": $BURNING_SUCCESS_STATUS,
+            "buildNumber": "${{ github.run_number }}"
+          }
+          EOF
+          echo "✅ Burning metadata updated (Records: $BURNING_DATA_COUNT, Success: $BURNING_SUCCESS_STATUS)"
 
       - name: Install React dependencies
         run: |
@@ -177,10 +270,12 @@ jobs:
 
       - name: Create API redirect for better UX
         run: |
-          # /api/ranking.json へのアクセスをサポート
+          # APIエンドポイントへのアクセスをサポート
           cat > deploy/_redirects << EOF
           /api/ranking.json /ranking.json 200
+          /api/ranking_burning.json /ranking_burning.json 200
           /api/meta.json /meta.json 200
+          /api/meta-ranking_burning.json /meta-ranking_burning.json 200
           /api/* /api/:splat 200
           /* /index.html 200
           EOF
@@ -200,5 +295,6 @@ jobs:
         run: |
           echo "🚀 Deployment completed!"
           echo "📱 React App: https://r-eco-maple.github.io/ranking/"
-          echo "📊 API Endpoint: https://r-eco-maple.github.io/ranking/ranking.json"
+          echo "📊 Main Ranking API: https://r-eco-maple.github.io/ranking/ranking.json"
+          echo "🔥 Burning Ranking API: https://r-eco-maple.github.io/ranking/ranking_burning.json"
           echo "📄 API Docs: https://r-eco-maple.github.io/ranking/api/"
