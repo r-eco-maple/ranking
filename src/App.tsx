@@ -30,14 +30,16 @@ function App() {
 
   // 2025年7月5日0:00 JST以降にバーニングランキングを表示
   const showBurningRanking = () => {
-    const targetDate = new Date('2025-07-05T00:00:00+09:00'); // JST
+    const targetDate = new Date("2025-07-05T00:00:00+09:00"); // JST
     const currentDate = new Date();
     return currentDate >= targetDate;
   };
 
   const availableSources = [
     { value: "ranking", label: "総合" },
-    ...(showBurningRanking() ? [{ value: "ranking_burning", label: "バーニング" }] : []),
+    ...(showBurningRanking()
+      ? [{ value: "ranking_burning", label: "バーニング" }]
+      : []),
   ];
 
   useEffect(() => {
@@ -137,30 +139,52 @@ function App() {
 
   return (
     <div className="app">
-      <header className="app-header">
-        <h1>MapleStory Ranking</h1>
-        <div className="data-stats">
-          <span>プレイヤー数: {dataStats.uniquePlayerCount}人</span>
-          <span>
-            期間: {dataStats.dataStartDate} ~ {dataStats.dataEndDate}
-          </span>
-          <span>
-            レベル範囲: Lv.{dataStats.minLevel} - {dataStats.maxLevel}
-          </span>
+      <div className="main-container">
+        <header className="app-header">
+          <h1>経験値ランキング</h1>
+          <div className="data-stats">
+            <span>プレイヤー数: {dataStats.uniquePlayerCount}人</span>
+            <span>
+              期間: {dataStats.dataStartDate} ~ {dataStats.dataEndDate}
+            </span>
+            <span>
+              レベル範囲: Lv.{dataStats.minLevel} - {dataStats.maxLevel}
+            </span>
+          </div>
+          <div className="info-section">
+            <ul>
+              <li>データ更新は毎日0:00~1:00の間に行われます。</li>
+              <li>総合ランキングの1~100位のデータを取得しています。</li>
+              <li>
+                100位以内に入ってランク外になった場合でもリストに乗っています。
+              </li>
+              <li>
+                <a
+                  href="https://maplestory.nexon.co.jp/community/exp/ranking/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  公式ランキング
+                </a>
+              </li>
+            </ul>
+          </div>
+        </header>
+
+        <div className="controls-section">
+          <FilterPanel
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            players={allPlayers}
+          />
+
+          <SourceSelector
+            currentSource={currentSource}
+            onSourceChange={handleSourceChange}
+            availableSources={availableSources}
+          />
         </div>
-      </header>
-
-      <SourceSelector
-        currentSource={currentSource}
-        onSourceChange={handleSourceChange}
-        availableSources={availableSources}
-      />
-
-      <FilterPanel
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        players={allPlayers}
-      />
+      </div>
 
       {filters.name && (
         <RankingChart
