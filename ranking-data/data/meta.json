@@ -1,0 +1,9 @@
+{
+  "lastUpdated": "2025-06-24T07:27:01Z",
+  "timezone": "UTC", 
+  "source": "MapleStory Ranking System",
+  "updateFrequency": "Daily at 09:00 JST",
+  "dataCount": 500,
+  "success": true,
+  "buildNumber": "14"
+}

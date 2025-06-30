@@ -1,0 +1,10 @@
+{
+  "lastUpdated": "2025-06-30T12:00:00Z",
+  "timezone": "UTC", 
+  "source": "Burning Ranking System",
+  "updateFrequency": "Test data",
+  "dataCount": 10,
+  "success": true,
+  "buildNumber": "burning-test"
+}
+EOF < /dev/null
