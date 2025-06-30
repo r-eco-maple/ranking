@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { Player } from './types';
-import { fetchRankingData } from './api';
-import RankingTable from './components/RankingTable';
-import FilterPanel from './components/FilterPanel';
-import RankingChart from './components/RankingChart';
-import SourceSelector from './components/SourceSelector';
-import './App.css';
+import { useState, useEffect } from "react";
+import { Player } from "./types";
+import { fetchRankingData } from "./api";
+import RankingTable from "./components/RankingTable";
+import FilterPanel from "./components/FilterPanel";
+import RankingChart from "./components/RankingChart";
+import SourceSelector from "./components/SourceSelector";
+import "./App.css";
 
 function App() {
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
@@ -13,24 +13,31 @@ function App() {
   const [filteredPlayers, setFilteredPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [dataStats, setDataStats] = useState({
     uniquePlayerCount: 0,
-    dataStartDate: '',
-    dataEndDate: '',
+    dataStartDate: "",
+    dataEndDate: "",
     minLevel: 0,
-    maxLevel: 0
+    maxLevel: 0,
   });
 
   const [filters, setFilters] = useState({
-    name: ''
+    name: "",
   });
 
-  const [currentSource, setCurrentSource] = useState('ranking');
-  
+  const [currentSource, setCurrentSource] = useState("ranking");
+
+  // 2025年7月5日0:00 JST以降にバーニングランキングを表示
+  const showBurningRanking = () => {
+    const targetDate = new Date('2025-07-05T00:00:00+09:00'); // JST
+    const currentDate = new Date();
+    return currentDate >= targetDate;
+  };
+
   const availableSources = [
-    { value: 'ranking', label: 'メインランキング' },
-    { value: 'ranking_burning', label: 'バーニングランキング' }
+    { value: "ranking", label: "総合" },
+    ...(showBurningRanking() ? [{ value: "ranking_burning", label: "バーニング" }] : []),
   ];
 
   useEffect(() => {
@@ -43,25 +50,31 @@ function App() {
           const latestData = response.data.slice(-100);
           setPlayers(latestData);
           setFilteredPlayers(latestData);
-          
+
           // データ統計を計算
-          const uniqueNames = new Set(response.data.map(p => p.name));
-          const timestamps = response.data.map(p => new Date(p.timestamp)).sort((a, b) => a.getTime() - b.getTime());
-          const levels = response.data.map(p => p.level);
-          
+          const uniqueNames = new Set(response.data.map((p) => p.name));
+          const timestamps = response.data
+            .map((p) => new Date(p.timestamp))
+            .sort((a, b) => a.getTime() - b.getTime());
+          const levels = response.data.map((p) => p.level);
+
           setDataStats({
             uniquePlayerCount: uniqueNames.size,
-            dataStartDate: timestamps[0]?.toLocaleDateString('ja-JP') || '',
-            dataEndDate: timestamps[timestamps.length - 1]?.toLocaleDateString('ja-JP') || '',
+            dataStartDate: timestamps[0]?.toLocaleDateString("ja-JP") || "",
+            dataEndDate:
+              timestamps[timestamps.length - 1]?.toLocaleDateString("ja-JP") ||
+              "",
             minLevel: levels.length > 0 ? Math.min(...levels) : 0,
-            maxLevel: levels.length > 0 ? Math.max(...levels) : 0
+            maxLevel: levels.length > 0 ? Math.max(...levels) : 0,
           });
         } else {
-          setError('データの取得に失敗しました。しばらく後にお試しください。');
+          setError("データの取得に失敗しました。しばらく後にお試しください。");
         }
       } catch (err) {
-        console.error('Data fetch error:', err);
-        setError('データサーバーに接続できません。しばらく後にお試しください。');
+        console.error("Data fetch error:", err);
+        setError(
+          "データサーバーに接続できません。しばらく後にお試しください。"
+        );
       } finally {
         setLoading(false);
       }
@@ -72,13 +85,13 @@ function App() {
 
   useEffect(() => {
     const hasActiveFilters = filters.name;
-    
+
     let dataToFilter = hasActiveFilters ? allPlayers : players;
     let filtered = dataToFilter;
 
     if (filters.name) {
-      filtered = filtered.filter(player => 
-        player.name.toLowerCase() === filters.name.toLowerCase()
+      filtered = filtered.filter(
+        (player) => player.name.toLowerCase() === filters.name.toLowerCase()
       );
     }
 
@@ -96,8 +109,15 @@ function App() {
   const handleSourceChange = (source: string) => {
     setCurrentSource(source);
     // ソース変更時にフィルターをリセット
-    setFilters({ name: '' });
+    setFilters({ name: "" });
   };
+
+  // バーニングランキングが利用可能でない場合、総合に戻す
+  useEffect(() => {
+    if (currentSource === "ranking_burning" && !showBurningRanking()) {
+      setCurrentSource("ranking");
+    }
+  }, [currentSource]);
 
   if (loading) {
     return (
@@ -121,30 +141,34 @@ function App() {
         <h1>MapleStory Ranking</h1>
         <div className="data-stats">
           <span>プレイヤー数: {dataStats.uniquePlayerCount}人</span>
-          <span>期間: {dataStats.dataStartDate} ~ {dataStats.dataEndDate}</span>
-          <span>レベル範囲: Lv.{dataStats.minLevel} - {dataStats.maxLevel}</span>
+          <span>
+            期間: {dataStats.dataStartDate} ~ {dataStats.dataEndDate}
+          </span>
+          <span>
+            レベル範囲: Lv.{dataStats.minLevel} - {dataStats.maxLevel}
+          </span>
         </div>
       </header>
-      
+
       <SourceSelector
         currentSource={currentSource}
         onSourceChange={handleSourceChange}
         availableSources={availableSources}
       />
-      
-      <FilterPanel 
-        filters={filters} 
+
+      <FilterPanel
+        filters={filters}
         onFilterChange={handleFilterChange}
         players={allPlayers}
       />
-      
+
       {filters.name && (
-        <RankingChart 
+        <RankingChart
           selectedPlayerName={filters.name}
           allPlayers={allPlayers}
         />
       )}
-      
+
       <RankingTable players={filteredPlayers} onNameClick={handleNameClick} />
     </div>
   );
