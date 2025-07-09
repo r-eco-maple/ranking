@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Player } from "./types";
 import { fetchRankingData } from "./api";
 import RankingTable from "./components/RankingTable";
@@ -27,6 +27,24 @@ function App() {
   });
 
   const [currentSource, setCurrentSource] = useState("ranking");
+
+  // URL パラメータで状態を管理するヘルパー関数
+  const updateURL = useCallback((source: string, searchName: string) => {
+    const params = new URLSearchParams();
+    if (source !== "ranking") params.set("source", source);
+    if (searchName) params.set("search", searchName);
+    
+    const newURL = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+    window.history.pushState(null, '', newURL);
+  }, []);
+
+  // URLから状態を読み取るヘルパー関数
+  const getStateFromURL = useCallback(() => {
+    const params = new URLSearchParams(window.location.search);
+    const source = params.get('source') || 'ranking';
+    const searchName = params.get('search') || '';
+    return { source, searchName };
+  }, []);
 
   // 2025年7月5日0:00 JST以降にバーニングランキングを表示
   const showBurningRanking = () => {
@@ -102,17 +120,55 @@ function App() {
 
   const handleFilterChange = (newFilters: typeof filters) => {
     setFilters(newFilters);
+    // URLを更新
+    updateURL(currentSource, newFilters.name);
   };
 
   const handleNameClick = (name: string) => {
     setFilters({ name });
+    // URLを更新
+    updateURL(currentSource, name);
   };
 
   const handleSourceChange = (source: string) => {
     setCurrentSource(source);
     // ソース変更時にフィルターをリセット
     setFilters({ name: "" });
+    // URLを更新
+    updateURL(source, "");
   };
+
+  // 初期ロード時にURLから状態を復元
+  useEffect(() => {
+    const { source, searchName } = getStateFromURL();
+    
+    // バーニングランキングが利用可能でない場合は総合に戻す
+    const validSource = (source === "ranking_burning" && !showBurningRanking()) 
+      ? "ranking" 
+      : source;
+    
+    setCurrentSource(validSource);
+    if (searchName) {
+      setFilters({ name: searchName });
+    }
+  }, [getStateFromURL]);
+
+  // 戻るボタンの対応
+  useEffect(() => {
+    const handlePopState = () => {
+      const { source, searchName } = getStateFromURL();
+      
+      const validSource = (source === "ranking_burning" && !showBurningRanking()) 
+        ? "ranking" 
+        : source;
+      
+      setCurrentSource(validSource);
+      setFilters({ name: searchName });
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [getStateFromURL]);
 
   // バーニングランキングが利用可能でない場合、総合に戻す
   useEffect(() => {
