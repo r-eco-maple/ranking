@@ -1,6 +1,8 @@
 name: Deploy React App with Data
 
 on:
+  repository_dispatch:
+    types: [scraping-completed] # GAS からのトリガーを受信
   schedule:
     # 毎日午前0時（JST = UTC 15時）
     - cron: "0 15 * * *"
