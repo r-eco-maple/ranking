@@ -51,7 +51,7 @@ jobs:
             # User-Agentヘッダーを追加してブラウザのようにアクセス
             if curl -f -s -L -o data/ranking.json \
               -H "User-Agent: Mozilla/5.0 (compatible; GitHub-Actions)" \
-              "https://script.google.com/macros/s/AKfycbwOxOppce1dLNhYI3F3IfznonZZI5hIRYFg5Rmu-CLa73KUGJk3ek4o9hAFnxm7F6zn7A/exec?apiKey=$GAS_API_KEY"; then
+              "https://script.google.com/macros/s/AKfycbwOxOppce1dLNhYI3F3IfznonZZI5hIRYFg5Rmu-CLa73KUGJk3ek4o9hAFnxm7F6zn7A/exec?apiKey=$GAS_API_KEY&cache_bust=$(date +%s)"; then
               
               echo "✅ Main data fetched, checking content..."
               
@@ -81,7 +81,7 @@ jobs:
                 cat data/ranking.json
                 
                 # HTMLレスポンスからリダイレクトURLを抽出
-                REDIRECT_URL=$(grep -o 'https://script.googleusercontent.com[^"]*' data/ranking.json | head -1)
+                REDIRECT_URL=$(grep -o 'https://script.googleusercontent.com[^"\n]*' data/ranking.json | head -1)
                 if [ ! -z "$REDIRECT_URL" ]; then
                   echo "🔄 Found redirect URL, trying: $REDIRECT_URL"
                   if curl -f -s -L -o data/ranking.json "$REDIRECT_URL"; then
@@ -124,7 +124,7 @@ jobs:
             # バーニングシート指定でデータ取得
             if curl -f -s -L -o data/ranking_burning.json \
               -H "User-Agent: Mozilla/5.0 (compatible; GitHub-Actions)" \
-              "https://script.google.com/macros/s/AKfycbwOxOppce1dLNhYI3F3IfznonZZI5hIRYFg5Rmu-CLa73KUGJk3ek4o9hAFnxm7F6zn7A/exec?apiKey=$GAS_API_KEY&sheet=burning"; then
+              "https://script.google.com/macros/s/AKfycbwOxOppce1dLNhYI3F3IfznonZZI5hIRYFg5Rmu-CLa73KUGJk3ek4o9hAFnxm7F6zn7A/exec?apiKey=$GAS_API_KEY&sheet=burning&cache_bust=$(date +%s)"; then
               
               echo "✅ Burning data fetched, checking content..."
               
@@ -154,7 +154,7 @@ jobs:
                 cat data/ranking_burning.json
                 
                 # HTMLレスポンスからリダイレクトURLを抽出
-                REDIRECT_URL=$(grep -o 'https://script.googleusercontent.com[^"]*' data/ranking_burning.json | head -1)
+                REDIRECT_URL=$(grep -o 'https://script.googleusercontent.com[^"\n]*' data/ranking_burning.json | head -1)
                 if [ ! -z "$REDIRECT_URL" ]; then
                   echo "🔄 Found burning redirect URL, trying: $REDIRECT_URL"
                   if curl -f -s -L -o data/ranking_burning.json "$REDIRECT_URL"; then
