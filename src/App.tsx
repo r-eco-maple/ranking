@@ -218,7 +218,11 @@ function App() {
               </li>
               <li>
                 <a
-                  href="https://maplestory.nexon.co.jp/community/exp/ranking/"
+                  href={
+                    currentSource === "ranking_burning"
+                      ? "https://maplestory.nexon.co.jp/community/exp/ranking/?p=1&worldname=49&jobname=%E7%94%B7%E5%A5%B3%EF%BC%8B%E8%81%B7%E6%A5%AD%E5%85%A8%E4%BD%93"
+                      : "https://maplestory.nexon.co.jp/community/exp/ranking/"
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                 >
