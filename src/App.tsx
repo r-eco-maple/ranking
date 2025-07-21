@@ -77,6 +77,7 @@ function App() {
             .map((p) => new Date(p.timestamp))
             .sort((a, b) => a.getTime() - b.getTime());
           const levels = response.data.map((p) => p.level);
+          const minLevel = levels.slice(-1)[0];
 
           setDataStats({
             uniquePlayerCount: uniqueNames.size,
@@ -84,7 +85,7 @@ function App() {
             dataEndDate:
               timestamps[timestamps.length - 1]?.toLocaleDateString("ja-JP") ||
               "",
-            minLevel: levels.length > 0 ? Math.min(...levels) : 0,
+            minLevel: minLevel ? minLevel : 0,
             maxLevel: levels.length > 0 ? Math.max(...levels) : 0,
           });
         } else {
