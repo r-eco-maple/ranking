@@ -6,6 +6,8 @@ on:
   workflow_dispatch: # 手動実行も可能
   push:
     branches: [main]
+  paths:
+    - "src/**"
 
 jobs:
   build-and-deploy:
