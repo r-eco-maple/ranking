@@ -6,6 +6,15 @@ interface LevelChartProps {
   players: Player[];
 }
 
+interface CustomLabelProps {
+  cx: number;
+  cy: number;
+  midAngle: number;
+  innerRadius: number;
+  outerRadius: number;
+  value: number;
+}
+
 const COLORS = [
   '#667eea', '#a78bfa', '#f472b6', '#fb923c', '#34d399',
   '#22d3ee', '#fbbf24', '#f87171', '#c084fc', '#818cf8'
@@ -25,7 +34,7 @@ const LevelChart = ({ players }: LevelChartProps) => {
 
   }, [players]);
 
-  const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, value }) => {
+  const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, value }: CustomLabelProps) => {
     const RADIAN = Math.PI / 180;
     // ラベルを配置する半径を調整（セクションの中央付近）
     const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
@@ -70,7 +79,7 @@ const LevelChart = ({ players }: LevelChartProps) => {
             animationDuration={700}
             animationBegin={10}
           >
-            {levelData.map((entry, index) => (
+            {levelData.map((_, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
