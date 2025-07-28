@@ -5,6 +5,7 @@ import RankingTable from "./components/RankingTable";
 import FilterPanel from "./components/FilterPanel";
 import RankingChart from "./components/RankingChart";
 import SourceSelector from "./components/SourceSelector";
+import LevelChart from "./components/LevelChart";
 import "./App.css";
 
 function App() {
@@ -27,13 +28,14 @@ function App() {
   });
 
   const [currentSource, setCurrentSource] = useState("ranking");
+  const [isChartOpen, setChartOpen] = useState(false);
 
   // URL パラメータで状態を管理するヘルパー関数
   const updateURL = useCallback((source: string, searchName: string) => {
     const params = new URLSearchParams();
     if (source !== "ranking") params.set("source", source);
     if (searchName) params.set("search", searchName);
-    
+
     const newURL = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
     window.history.pushState(null, '', newURL);
   }, []);
@@ -142,12 +144,12 @@ function App() {
   // 初期ロード時にURLから状態を復元
   useEffect(() => {
     const { source, searchName } = getStateFromURL();
-    
+
     // バーニングランキングが利用可能でない場合は総合に戻す
-    const validSource = (source === "ranking_burning" && !showBurningRanking()) 
-      ? "ranking" 
+    const validSource = (source === "ranking_burning" && !showBurningRanking())
+      ? "ranking"
       : source;
-    
+
     setCurrentSource(validSource);
     if (searchName) {
       setFilters({ name: searchName });
@@ -158,15 +160,15 @@ function App() {
   useEffect(() => {
     const handlePopState = () => {
       const { source, searchName } = getStateFromURL();
-      
-      const validSource = (source === "ranking_burning" && !showBurningRanking()) 
-        ? "ranking" 
+
+      const validSource = (source === "ranking_burning" && !showBurningRanking())
+        ? "ranking"
         : source;
-      
+
       setCurrentSource(validSource);
       setFilters({ name: searchName });
     };
-    
+
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [getStateFromURL]);
@@ -246,6 +248,17 @@ function App() {
             onSourceChange={handleSourceChange}
             availableSources={availableSources}
           />
+
+          <div className="chart-button-container">
+            <button className="chart-button" onClick={() => setChartOpen((prev) => !prev)}>
+              レベル割合を表示
+            </button>
+          </div>
+          {isChartOpen && (
+            <div className="source-selector">
+              <LevelChart players={players} />
+            </div>
+          )}
         </div>
       </div>
 
