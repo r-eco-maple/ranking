@@ -131,6 +131,8 @@ function App() {
     setFilters({ name });
     // URLを更新
     updateURL(currentSource, name);
+    // ページの一番上にスクロール
+    window.scrollTo({ top: 0 });
   };
 
   const handleSourceChange = (source: string) => {
