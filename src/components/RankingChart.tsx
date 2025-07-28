@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import {
-  LineChart,
+  ComposedChart,
   Line,
   XAxis,
   YAxis,
@@ -94,7 +94,7 @@ const RankingChart = ({
       <h3>{selectedPlayerName} のランキング推移</h3>
       <div className="chart-wrapper">
         <ResponsiveContainer width="100%" height={400}>
-          <LineChart
+          <ComposedChart
             data={chartData}
             margin={{
               top: 20,
@@ -106,31 +106,53 @@ const RankingChart = ({
             <CartesianGrid strokeDasharray="3 3" stroke="#e1e5e9" />
             <XAxis dataKey="displayDate" stroke="#6b7280" fontSize={12} />
             <YAxis
+              yAxisId="left"
               stroke="#6b7280"
               fontSize={12}
               reversed={true}
               domain={["dataMin - 2", "dataMax + 3"]}
               label={{ value: "ランク", angle: -90, position: "insideLeft" }}
             />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              stroke="#4cd497"
+              fontSize={12}
+              domain={["dataMin - 2", "dataMax + 3"]}
+              label={{ value: "レベル", angle: 90, position: "insideRight" }}
+              tickFormatter={(value) => Math.round(value).toString()}
+            />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
             <Line
-              //  type="monotone" 曲線
+              yAxisId="left"
               type="linear"
               dataKey="rank"
               stroke="#667eea"
               strokeWidth={3}
-              dot={{ fill: "#667eea", strokeWidth: 2, r: 6 }}
+              dot={{ fill: "#667eea", strokeWidth: 2, r: 4 }}
               activeDot={{ r: 8, fill: "#4f46e5" }}
               name="ランキング"
             />
-          </LineChart>
+            <Line
+              yAxisId="right"
+              type="linear"
+              dataKey="level"
+              stroke="#4cd497"
+              strokeWidth={3}
+              dot={{ fill: "#4cd497", strokeWidth: 2, r: 4 }}
+              activeDot={{ r: 8, fill: "#3ca676" }}
+              name="レベル"
+            />
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
       <div className="chart-info">
         <p>期間: {chartData.length}日間のデータ</p>
         <p>最高順位: {Math.min(...chartData.map((d) => d.rank))}位</p>
         <p>最新順位: {chartData[chartData.length - 1]?.rank}位</p>
+        <p>最高レベル: {Math.max(...chartData.map((d) => d.level))}</p>
+        <p>最新レベル: {chartData[chartData.length - 1]?.level}</p>
       </div>
     </div>
   );
