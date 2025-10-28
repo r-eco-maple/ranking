@@ -47,6 +47,9 @@ const FilterPanel = ({ filters, onFilterChange, players }: FilterPanelProps) => 
             isSearchable
             className="react-select-container"
             classNamePrefix="react-select"
+            filterOption={(option, inputValue) =>
+              option.label.toLowerCase().startsWith(inputValue.toLowerCase())
+            }
           />
         </div>
 
