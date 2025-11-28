@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Player } from '../types';
 
-interface LevelChartProps {
+interface ChartProps {
   players: Player[];
 }
 
@@ -20,7 +20,7 @@ const COLORS = [
   '#22d3ee', '#fbbf24', '#f87171', '#c084fc', '#818cf8'
 ];
 
-const LevelChart = ({ players }: LevelChartProps) => {
+const LevelChart = ({ players }: ChartProps) => {
   const levelData = useMemo(() => {
     const levelCounts = players.reduce((acc, player) => {
       const level = player.level;

@@ -6,6 +6,8 @@ import FilterPanel from "./components/FilterPanel";
 import RankingChart from "./components/RankingChart";
 import SourceSelector from "./components/SourceSelector";
 import LevelChart from "./components/LevelChart";
+import ServerChart from "./components/ServerChart";
+import JobChart from "./components/JobChart";
 import "./App.css";
 
 function App() {
@@ -29,6 +31,8 @@ function App() {
 
   const [currentSource, setCurrentSource] = useState("ranking");
   const [isChartOpen, setChartOpen] = useState(false);
+  const [isBarChartOpen, setBarChartOpen] = useState(false);
+  const [isJobBarChartOpen, setJobBarChartOpen] = useState(false);
 
   // URL パラメータで状態を管理するヘルパー関数
   const updateURL = useCallback((source: string, searchName: string) => {
@@ -251,9 +255,35 @@ function App() {
             availableSources={availableSources}
           />
 
+          {currentSource !== "ranking_burning" && (
+            <>
+              <div className="chart-button-container">
+                <button className="chart-button" onClick={() => setBarChartOpen((prev) => !prev)}>
+                  サーバー割合
+                </button>
+              </div>
+              {isBarChartOpen && (
+                <div className="source-selector">
+                  <ServerChart players={players} />
+                </div>
+              )}
+            </>
+          )}
+
+          <div className="chart-button-container">
+            <button className="chart-button" onClick={() => setJobBarChartOpen((prev) => !prev)}>
+              職割合
+            </button>
+          </div>
+          {isJobBarChartOpen && (
+            <div className="source-selector">
+              <JobChart players={players} />
+            </div>
+          )}
+
           <div className="chart-button-container">
             <button className="chart-button" onClick={() => setChartOpen((prev) => !prev)}>
-              レベル割合を表示
+              レベル割合
             </button>
           </div>
           {isChartOpen && (

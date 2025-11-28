@@ -34,3 +34,5 @@ dist-ssr
 # Claude/Development files
 .claude/
 DEPLOY_INSTRUCTIONS.md
+
+/m*.md
