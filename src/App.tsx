@@ -52,18 +52,19 @@ function App() {
     return { source, searchName };
   }, []);
 
-  // 2025年7月5日0:00 JST以降にバーニングランキングを表示
+  // 2025年12月12日0:00 JST以降にバーニングランキングを表示
   const showBurningRanking = () => {
-    const targetDate = new Date("2025-07-05T00:00:00+09:00"); // JST
+    const targetDate = new Date("2025-12-12T00:00:00+09:00"); // JST
     const currentDate = new Date();
     return currentDate >= targetDate;
   };
 
+  const burning1 = { value: "ranking_burning", label: "1期チャレ鯖" }
   const availableSources = [
     { value: "ranking", label: "総合" },
     ...(showBurningRanking()
-      ? [{ value: "ranking_burning", label: "バーニング" }]
-      : []),
+      ? [{ value: "ranking_burning2512", label: "2期チャレ鯖" }, burning1]
+      : [burning1]),
   ];
 
   useEffect(() => {
@@ -226,6 +227,7 @@ function App() {
                 100位以内に入ってランク外になった場合でもリストに乗っています。
               </li>
               <li>
+                {/* TODO：URL発効後に切り替える */}
                 <a
                   href={
                     currentSource === "ranking_burning"
