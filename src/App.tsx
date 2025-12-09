@@ -8,6 +8,7 @@ import SourceSelector from "./components/SourceSelector";
 import LevelChart from "./components/LevelChart";
 import ServerChart from "./components/ServerChart";
 import JobChart from "./components/JobChart";
+import WeeklyChart from "./components/WeeklyChart";
 import "./App.css";
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
   const [isChartOpen, setChartOpen] = useState(false);
   const [isBarChartOpen, setBarChartOpen] = useState(false);
   const [isJobBarChartOpen, setJobBarChartOpen] = useState(false);
+  const [isWeeklyChartOpen, setWeeklyChartOpen] = useState(false);
 
   // URL パラメータで状態を管理するヘルパー関数
   const updateURL = useCallback((source: string, searchName: string) => {
@@ -245,19 +247,22 @@ function App() {
         </header>
 
         <div className="controls-section">
+          {/* 名前検索 */}
           <FilterPanel
             filters={filters}
             onFilterChange={handleFilterChange}
             players={allPlayers}
           />
 
+          {/* サーバー切り替え */}
           <SourceSelector
             currentSource={currentSource}
             onSourceChange={handleSourceChange}
             availableSources={availableSources}
           />
 
-          {currentSource !== "ranking_burning" && (
+          {/* サーバー割合バーチャート */}
+          {currentSource === "ranking" && (
             <>
               <div className="chart-button-container">
                 <button className="chart-button" onClick={() => setBarChartOpen((prev) => !prev)}>
@@ -272,6 +277,7 @@ function App() {
             </>
           )}
 
+          {/* 職割合バーチャート */}
           <div className="chart-button-container">
             <button className="chart-button" onClick={() => setJobBarChartOpen((prev) => !prev)}>
               職割合
@@ -283,6 +289,7 @@ function App() {
             </div>
           )}
 
+          {/* レベル割合円グラフ */}
           <div className="chart-button-container">
             <button className="chart-button" onClick={() => setChartOpen((prev) => !prev)}>
               レベル割合
@@ -293,9 +300,24 @@ function App() {
               <LevelChart players={players} />
             </div>
           )}
+
+          {/* 週間ランキング推移グラフ */}
+          <div className="chart-button-container">
+            <button className="chart-button" onClick={() => setWeeklyChartOpen((prev) => !prev)}>
+              週間ランキング推移
+            </button>
+          </div>
         </div>
       </div>
 
+      {/* 週間ランキング推移グラフ.100%表示の為、外に設置 */}
+      {isWeeklyChartOpen && (
+        // <div className="source-selector">
+          <WeeklyChart allPlayers={allPlayers} />
+        // </div>
+      )}
+
+      {/* キャラ詳細グラフ */}
       {filters.name && (
         <RankingChart
           selectedPlayerName={filters.name}
