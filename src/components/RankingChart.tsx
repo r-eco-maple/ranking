@@ -149,9 +149,7 @@ const RankingChart = ({
       </div>
       <div className="chart-info">
         <p>期間: {chartData.length}日間のデータ</p>
-        <p>最高順位: {Math.min(...chartData.map((d) => d.rank))}位</p>
         <p>最新順位: {chartData[chartData.length - 1]?.rank}位</p>
-        <p>最高レベル: {Math.max(...chartData.map((d) => d.level))}</p>
         <p>最新レベル: {chartData[chartData.length - 1]?.level}</p>
       </div>
     </div>
