@@ -54,18 +54,20 @@ function App() {
     return { source, searchName };
   }, []);
 
-  // 2025年12月12日0:00 JST以降にバーニングランキングを表示
-  const showBurningRanking = () => {
-    const targetDate = new Date("2025-12-12T00:00:00+09:00"); // JST
+  // 2025年12月11日0:00 JST以降にバーニング2期ランキングを表示
+  const showBurning2Ranking = () => {
+    const targetDate = new Date("2025-12-11T00:00:00+09:00"); // JST
     const currentDate = new Date();
     return currentDate >= targetDate;
   };
 
   const burning1 = { value: "ranking_burning", label: "1期チャレ鯖" }
+  const burning2 = { value: "ranking_burning2512", label: "2期チャレ鯖" }
+
   const availableSources = [
     { value: "ranking", label: "総合" },
-    ...(showBurningRanking()
-      ? [{ value: "ranking_burning2512", label: "2期チャレ鯖" }, burning1]
+    ...(showBurning2Ranking()
+      ? [burning2, burning1]
       : [burning1]),
   ];
 
@@ -74,6 +76,9 @@ function App() {
       try {
         setLoading(true);
         const response = await fetchRankingData(currentSource);
+        console.log(response);
+        console.log(response.data);
+        console.log(response.data.length);
         if (response.success && response.data && response.data.length > 0) {
           setAllPlayers(response.data);
           const latestData = response.data.slice(-100);
@@ -154,8 +159,8 @@ function App() {
   useEffect(() => {
     const { source, searchName } = getStateFromURL();
 
-    // バーニングランキングが利用可能でない場合は総合に戻す
-    const validSource = (source === "ranking_burning" && !showBurningRanking())
+    // バーニング2期が利用可能でない場合は総合に戻す
+    const validSource = (source === "ranking_burning2512" && !showBurning2Ranking())
       ? "ranking"
       : source;
 
@@ -170,7 +175,8 @@ function App() {
     const handlePopState = () => {
       const { source, searchName } = getStateFromURL();
 
-      const validSource = (source === "ranking_burning" && !showBurningRanking())
+      // バーニング2期が利用可能でない場合は総合に戻す
+      const validSource = (source === "ranking_burning2512" && !showBurning2Ranking())
         ? "ranking"
         : source;
 
@@ -181,13 +187,6 @@ function App() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [getStateFromURL]);
-
-  // バーニングランキングが利用可能でない場合、総合に戻す
-  useEffect(() => {
-    if (currentSource === "ranking_burning" && !showBurningRanking()) {
-      setCurrentSource("ranking");
-    }
-  }, [currentSource]);
 
   if (loading) {
     return (
@@ -229,10 +228,9 @@ function App() {
                 100位以内に入ってランク外になった場合でもリストに乗っています。
               </li>
               <li>
-                {/* TODO：URL発効後に切り替える */}
                 <a
                   href={
-                    currentSource === "ranking_burning"
+                    currentSource === "ranking_burning2512"
                       ? "https://maplestory.nexon.co.jp/community/exp/ranking/?p=1&worldname=49&jobname=%E7%94%B7%E5%A5%B3%EF%BC%8B%E8%81%B7%E6%A5%AD%E5%85%A8%E4%BD%93"
                       : "https://maplestory.nexon.co.jp/community/exp/ranking/"
                   }
