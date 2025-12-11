@@ -8,6 +8,7 @@ import SourceSelector from "./components/SourceSelector";
 import LevelChart from "./components/LevelChart";
 import ServerChart from "./components/ServerChart";
 import JobChart from "./components/JobChart";
+import WeeklyChart from "./components/WeeklyChart";
 import "./App.css";
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
   const [isChartOpen, setChartOpen] = useState(false);
   const [isBarChartOpen, setBarChartOpen] = useState(false);
   const [isJobBarChartOpen, setJobBarChartOpen] = useState(false);
+  const [isWeeklyChartOpen, setWeeklyChartOpen] = useState(false);
 
   // URL パラメータで状態を管理するヘルパー関数
   const updateURL = useCallback((source: string, searchName: string) => {
@@ -52,18 +54,21 @@ function App() {
     return { source, searchName };
   }, []);
 
-  // 2025年7月5日0:00 JST以降にバーニングランキングを表示
-  const showBurningRanking = () => {
-    const targetDate = new Date("2025-07-05T00:00:00+09:00"); // JST
+  // 2025年12月11日0:00 JST以降にバーニング2期ランキングを表示
+  const showBurning2Ranking = () => {
+    const targetDate = new Date("2025-12-11T00:00:00+09:00"); // JST
     const currentDate = new Date();
     return currentDate >= targetDate;
   };
 
+  const burning1 = { value: "ranking_burning", label: "1期チャレ鯖" }
+  const burning2 = { value: "ranking_burning2512", label: "2期チャレ鯖" }
+
   const availableSources = [
     { value: "ranking", label: "総合" },
-    ...(showBurningRanking()
-      ? [{ value: "ranking_burning", label: "バーニング" }]
-      : []),
+    ...(showBurning2Ranking()
+      ? [burning2, burning1]
+      : [burning1]),
   ];
 
   useEffect(() => {
@@ -71,6 +76,9 @@ function App() {
       try {
         setLoading(true);
         const response = await fetchRankingData(currentSource);
+        console.log(response);
+        console.log(response.data);
+        console.log(response.data.length);
         if (response.success && response.data && response.data.length > 0) {
           setAllPlayers(response.data);
           const latestData = response.data.slice(-100);
@@ -151,8 +159,8 @@ function App() {
   useEffect(() => {
     const { source, searchName } = getStateFromURL();
 
-    // バーニングランキングが利用可能でない場合は総合に戻す
-    const validSource = (source === "ranking_burning" && !showBurningRanking())
+    // バーニング2期が利用可能でない場合は総合に戻す
+    const validSource = (source === "ranking_burning2512" && !showBurning2Ranking())
       ? "ranking"
       : source;
 
@@ -167,7 +175,8 @@ function App() {
     const handlePopState = () => {
       const { source, searchName } = getStateFromURL();
 
-      const validSource = (source === "ranking_burning" && !showBurningRanking())
+      // バーニング2期が利用可能でない場合は総合に戻す
+      const validSource = (source === "ranking_burning2512" && !showBurning2Ranking())
         ? "ranking"
         : source;
 
@@ -178,13 +187,6 @@ function App() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [getStateFromURL]);
-
-  // バーニングランキングが利用可能でない場合、総合に戻す
-  useEffect(() => {
-    if (currentSource === "ranking_burning" && !showBurningRanking()) {
-      setCurrentSource("ranking");
-    }
-  }, [currentSource]);
 
   if (loading) {
     return (
@@ -228,7 +230,7 @@ function App() {
               <li>
                 <a
                   href={
-                    currentSource === "ranking_burning"
+                    currentSource === "ranking_burning2512"
                       ? "https://maplestory.nexon.co.jp/community/exp/ranking/?p=1&worldname=49&jobname=%E7%94%B7%E5%A5%B3%EF%BC%8B%E8%81%B7%E6%A5%AD%E5%85%A8%E4%BD%93"
                       : "https://maplestory.nexon.co.jp/community/exp/ranking/"
                   }
@@ -243,19 +245,22 @@ function App() {
         </header>
 
         <div className="controls-section">
+          {/* 名前検索 */}
           <FilterPanel
             filters={filters}
             onFilterChange={handleFilterChange}
             players={allPlayers}
           />
 
+          {/* サーバー切り替え */}
           <SourceSelector
             currentSource={currentSource}
             onSourceChange={handleSourceChange}
             availableSources={availableSources}
           />
 
-          {currentSource !== "ranking_burning" && (
+          {/* サーバー割合バーチャート */}
+          {currentSource === "ranking" && (
             <>
               <div className="chart-button-container">
                 <button className="chart-button" onClick={() => setBarChartOpen((prev) => !prev)}>
@@ -270,6 +275,7 @@ function App() {
             </>
           )}
 
+          {/* 職割合バーチャート */}
           <div className="chart-button-container">
             <button className="chart-button" onClick={() => setJobBarChartOpen((prev) => !prev)}>
               職割合
@@ -281,6 +287,7 @@ function App() {
             </div>
           )}
 
+          {/* レベル割合円グラフ */}
           <div className="chart-button-container">
             <button className="chart-button" onClick={() => setChartOpen((prev) => !prev)}>
               レベル割合
@@ -291,9 +298,24 @@ function App() {
               <LevelChart players={players} />
             </div>
           )}
+
+          {/* 週間ランキング推移グラフ */}
+          <div className="chart-button-container">
+            <button className="chart-button" onClick={() => setWeeklyChartOpen((prev) => !prev)}>
+              週間ランキング推移
+            </button>
+          </div>
         </div>
       </div>
 
+      {/* 週間ランキング推移グラフ.100%表示の為、外に設置 */}
+      {isWeeklyChartOpen && (
+        // <div className="source-selector">
+          <WeeklyChart allPlayers={allPlayers} />
+        // </div>
+      )}
+
+      {/* キャラ詳細グラフ */}
       {filters.name && (
         <RankingChart
           selectedPlayerName={filters.name}
