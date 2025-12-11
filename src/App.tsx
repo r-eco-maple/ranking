@@ -61,14 +61,11 @@ function App() {
     return currentDate >= targetDate;
   };
 
-  const burning1 = { value: "ranking_burning", label: "1期チャレ鯖" }
+  // const burning1 = { value: "ranking_burning", label: "1期チャレ鯖" }
   const burning2 = { value: "ranking_burning2512", label: "2期チャレ鯖" }
 
   const availableSources = [
-    { value: "ranking", label: "総合" },
-    ...(showBurning2Ranking()
-      ? [burning2, burning1]
-      : [burning1]),
+    { value: "ranking", label: "総合" },burning2
   ];
 
   useEffect(() => {
@@ -76,9 +73,6 @@ function App() {
       try {
         setLoading(true);
         const response = await fetchRankingData(currentSource);
-        console.log(response);
-        console.log(response.data);
-        console.log(response.data.length);
         if (response.success && response.data && response.data.length > 0) {
           setAllPlayers(response.data);
           const latestData = response.data.slice(-100);
